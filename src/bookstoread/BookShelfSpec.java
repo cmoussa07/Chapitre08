@@ -2,8 +2,11 @@ package bookstoread;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+
+import java.time.Year;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +21,8 @@ public class BookShelfSpec {
     Book codeComplete;
     Book mythicalManMonth;
 
+    private Book cleanCode;
+
     @BeforeEach
     void init() throws Exception {
         shelf = new BookShelf();
@@ -30,6 +35,8 @@ public class BookShelfSpec {
 
         mythicalManMonth = new Book("The Mythical Man-Month",
                 "Frederick Phillips Brooks", LocalDate.of(1975, Month.JANUARY, 1));
+
+        cleanCode = new Book("Clean Code", "Robert C. Martin", LocalDate.of(2008, Month.AUGUST, 1));
     }
 
     @Test
@@ -97,4 +104,15 @@ public class BookShelfSpec {
         List<Book> books = shelf.arrange(Comparator.comparing(Book::getPublishedOn));
         assertEquals(asList(mythicalManMonth, codeComplete, effectiveJava), books);
     }
+
+    @Test
+    @DisplayName("books inside bookshelf are grouped by publication year")
+    void groupBooksInsideBookShelfByPublicationYear() {
+        shelf.add(effectiveJava, codeComplete, mythicalManMonth, cleanCode);
+        Map<Year, List<Book>> booksByPublicationYear = shelf.groupByPublicationYear();
+        assertThat(booksByPublicationYear).containsKey(Year.of(2008)).containsValues(Arrays.asList(effectiveJava, cleanCode));
+        assertThat(booksByPublicationYear).containsKey(Year.of(2004)).containsValues(Collections.singletonList(codeComplete));
+        assertThat(booksByPublicationYear).containsKey(Year.of(1975)).containsValues(Collections.singletonList(mythicalManMonth));
+    }
+
 }
